@@ -1,5 +1,6 @@
 @extends('app')
 @section('content')
+
     <h1>Customer </h1>
 
     <div class="container">
@@ -11,7 +12,7 @@
                 <td><?php echo ($customer['name']); ?></td>
             </tr>
             <tr>
-                <td>Cust Number</td>
+                <td>Customer ID</td>
                 <td><?php echo ($customer['cust_number']); ?></td>
             </tr>
             <tr>
@@ -41,9 +42,11 @@
 
 
             </tbody>
-      </table>
+        </table>
     </div>
-	            <?php
+
+
+    <?php
     $stockprice=null;
     $stotal = 0;
     $svalue=0;
@@ -74,24 +77,96 @@
 
 
 
-        @foreach($customer->stocks as $stock)
+
+            @foreach($customer->stocks as $stock)
+
                 <tr>
-                <td>{{ $stock->symbol }}</td>
-                <td>{{ $stock->name }}</td>
+                    <td>{{ $stock->symbol }}</td>
+                    <td>{{ $stock->name }}</td>
+                    <td>{{ $stock->shares }}</td>
+                    <td>{{ $stock->purchase_price }}</td>
+                    <td>{{ $stock->purchased }}</td>
+                    <td>{{ $stock->shares *  $stock->purchase_price }}</td>
+                    
+                    <?php
+                        $URL = "http://www.google.com/finance/info?q=NSE:" . $stock->symbol;
+                        $file = fopen("$URL", "r");
+                        $r = "";
+                        do {
+                            $data = fread($file, 500);
+                            $r .= $data;
+                        } while (strlen($data) != 0);
+                    
+                        $json = str_replace("\n", "", $r);
+                        
+                        $data = substr($json, 4, strlen($json) - 5);
+                        
+                        $json_output = json_decode($data, true);
+                       
+                        $price = "\n" . $json_output['l'];
+                        
+                        ?>
+                      <td><?php echo '$', $price ?></td>
+                      <td><?php echo $price * $stock->shares; $svalue= $svalue + ($stock->shares * $price) ?></td>
+					  <?php $stotal= $stotal+ ($stock->shares *  $stock->purchase_price)?>
+
+
+               </tr>
+
+
+            @endforeach
+            <h4>
+                <?php echo 'Total of Initial Stock Portfolio $', number_format($stotal,2);?>
+                <br>
+                <?php echo 'Total Current Stock Portfolio $',number_format($svalue,2)?>
+            </h4>
+
+
+
+
+
+
+            </tbody>
+        </table>
+    </div>
+    <br>
+    <h3>Invesmtents </h3>
+    <div class="container">
+        <table class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr class="bg-info">
+                <th> Category </th>
+                <th>Description</th>
+                <th>Acquired value</th>
+                <th>Acquired Date</th>
+                <th>Recent value</th>
+                <th>Recent Date</th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            @foreach($customer->investments as $investment)
+                <tr>
+                    <td>{{ $investment->category }}</td>
+                    <td>{{ $investment->description }}</td>
+                    <td>{{ $investment->acquired_value }}</td>
+                    <td>{{ $investment->acquired_date }}</td>
+                    <td>{{ $investment->recent_value }}</td>
+                    <td>{{ $investment->recent_date }}</td>
+                    <?php $itotal= $itotal + $investment->acquired_value; $ivalue= $ivalue + $investment->recent_value?>
+
 
                 </tr>
 
-        @endforeach
 
-          </tbody>
+            @endforeach
+            <h4>
+                <?php echo 'Total of Initial Investment Portfolio $', number_format($itotal,2);?>
+                <br>
+                <?php echo 'Total Current Investment Portfolio $',number_format($ivalue,2)?>
+            </h4>
+            </tbody>
         </table>
-
-
-
-
     </div>
-
-
-
-@stop
 
